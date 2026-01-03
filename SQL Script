@@ -1,0 +1,207 @@
+Create database Healthcareproject;
+use Healthcareproject;
+show tables;
+
+-- Importing tables : successfully imported
+select * from healthcare_dataset;
+/* doing a proper EDA on our dataset
+using the distinct to fliter
+searching for blanks
+checking for sum, count, avg, min, max, groupby, orderby etc*/
+
+select * from healthcare_dataset;
+
+select count(*) as Number_Of_Rows from healthcare_dataset; -- 55500
+
+-- adding a Primary key to solve problem of uniqueness
+alter table healthcare_dataset
+add column Patient_ID int primary key auto_increment first;
+show tables;
+select * from healthcare_dataset;
+
+-- dropping unwwanted columns
+alter table healthcare_dataset
+drop column Name,
+drop column `Date of Admission`,
+drop column Doctor,
+drop column `Room Number`,
+drop column `Discharge Date`;
+
+-- checking for blanks : exploring the age column
+select distinct Age from healthcare_dataset;
+SELECT COUNT(*) AS Blank_Age_Count FROM healthcare_dataset WHERE Age IS NULL; -- 0
+
+-- checking for blanks : exploring the gender column
+select distinct Gender from healthcare_dataset;
+SELECT COUNT(*) AS Blank_Gender_Count FROM healthcare_dataset WHERE Gender IS NULL; -- 0
+
+-- checking for blanks : exploring the bloodtype column
+select distinct `Blood Type` from healthcare_dataset;
+SELECT COUNT(*) AS Blank_Bloodtype_Count FROM healthcare_dataset WHERE `Blood Type` IS NULL; -- 0
+
+select count( Patient_ID) from healthcare_dataset;
+
+-- checking for blanks : exploring the Medial condition column
+select distinct `Medical Condition` from healthcare_dataset;
+select count(distinct`Medical Condition`) as Total_Conditions FROM healthcare_dataset WHERE `Medical Condition` IS NOT NULL; -- 6
+SELECT COUNT(*) AS Blank_Medicalcondition_Count FROM healthcare_dataset WHERE `Medical Condition` IS NULL; -- 0
+SELECT 
+`Medical Condition`,
+  COUNT(*) AS Condition_Count
+FROM healthcare_dataset
+WHERE `Medical Condition` IS NOT NULL
+GROUP BY `Medical Condition`
+ORDER BY Condition_Count DESC;
+
+-- checking for blanks : exploring the Hospital column
+select distinct Hospital from healthcare_dataset;
+select count(distinct Hospital) from healthcare_dataset;  -- 39876
+SELECT COUNT(*) AS Blank_Hospital_Count FROM healthcare_dataset WHERE Hospital IS NULL; -- 0
+
+-- checking for blanks : exploring the Insurance Provider column
+select distinct `Insurance Provider` from healthcare_dataset;
+SELECT COUNT(*) AS Blank_InsuranceProvider_Count FROM healthcare_dataset WHERE `Insurance Provider` IS NULL; -- 0
+select count(distinct `Insurance Provider`) from healthcare_dataset WHERE `Insurance Provider` IS not NULL; -- 5
+
+
+-- checking for blanks : exploring the Billing Amount column
+select distinct `Billing Amount` from healthcare_dataset;
+SELECT COUNT(*) AS Blank_BillingAmount_Count FROM healthcare_dataset WHERE `Billing Amount` IS NULL; -- 0
+
+-- checking for blanks : exploring the Admission Type column
+select distinct `Admission Type` from healthcare_dataset;
+SELECT COUNT(*) AS Blank_AdmissionType_Count FROM healthcare_dataset WHERE `Admission Type` IS NULL; -- 0
+select count( distinct`Admission Type`) from healthcare_dataset WHERE `Admission Type` IS not NULL; -- 3
+
+-- checking for blanks : exploring the Medication column
+select distinct Medication from healthcare_dataset;
+SELECT COUNT(*) AS Blank_Medication_Count FROM healthcare_dataset WHERE Medication = ''; -- 0
+select count( distinct Medication) from healthcare_dataset WHERE Medication IS not NULL; -- 5
+
+select * from 
+
+-- checking for blanks : exploring the Test Results column
+select distinct `Test Results` from healthcare_dataset;
+SELECT COUNT(*) AS Blank_TestResults_Count FROM healthcare_dataset WHERE`Test Results` = ''; -- 0
+select count( distinct `Test Results`) from healthcare_dataset WHERE `Test Results` IS not NULL; -- 3
+
+select * from healthcare_dataset;
+
+select min(Age) from healthcare_dataset; -- 13
+select max(Age) from healthcare_dataset;   -- 89
+select avg(Age) from healthcare_dataset; -- 51.539
+
+select Gender, count(*) as Gender_count from healthcare_dataset group by Gender; -- Male: 27774, Female:27726
+
+select count(*) as number_of_rows from healthcare_dataset; -- 55500
+
+alter table healthcare_dataset
+add column Age_group varchar(50) after age;
+
+set sql_safe_updates = 0;
+start transaction;
+rollback;
+
+update healthcare_dataset
+set Age_group = case
+when Age between 13 and 24 then '13-24'
+when Age between 25 and 34 then  '25-34'
+when Age between 35 and 44 then  '35-44'
+when Age between 45 and 54 then  '45-54'
+when Age between 55 and 64 then   '55-64'
+when Age between 65 and 74 then   '65-74'
+when Age between 75 and 84 then    '75-84'
+when Age between 85 and 94 then    '85-94'
+else Age
+end;
+select distinct Age_group from healthcare_dataset;
+select * from healthcare_dataset;
+
+-- adding age demography column
+alter table healthcare_dataset
+add column Age_Demography varchar(20) after Age_group;
+select Patient_ID, Age_group, 
+case 
+WHEN Age BETWEEN 13 AND 24 THEN 'Youth'
+    WHEN Age BETWEEN 25 AND 34 THEN 'Young Adults'
+    WHEN Age BETWEEN 35 AND 44 THEN 'Early Middle Age'
+    WHEN Age BETWEEN 45 AND 54 THEN 'Late Middle Age'
+    WHEN Age BETWEEN 55 AND 64 THEN 'Seniors'
+    WHEN Age BETWEEN 65 AND 74 THEN 'Older Adults'
+    WHEN Age BETWEEN 75 AND 84 THEN 'Elderly'
+    WHEN Age BETWEEN 85 AND 94 THEN 'Very Elderly'
+  END as Age_Demography_category 
+  from healthcare_dataset ;
+  
+  set sql_safe_updates = 0;
+  start transaction;
+UPDATE healthcare_dataset
+SET Age_Demography =CASE
+    WHEN Age BETWEEN 13 AND 24 THEN 'Youth'
+    WHEN Age BETWEEN 25 AND 34 THEN 'Young Adults'
+    WHEN Age BETWEEN 35 AND 44 THEN 'Early Middle Age'
+    WHEN Age BETWEEN 45 AND 54 THEN 'Late Middle Age'
+    WHEN Age BETWEEN 55 AND 64 THEN 'Seniors'
+    WHEN Age BETWEEN 65 AND 74 THEN 'Older Adults'
+    WHEN Age BETWEEN 75 AND 84 THEN 'Elderly'
+    WHEN Age BETWEEN 85 AND 94 THEN 'Very Elderly'
+  END;
+select count(Age_Demography) from healthcare_dataset where Age_Demography = '';
+
+select * from healthcare_dataset;
+
+-- adding column blood type name to the table
+alter table healthcare_dataset
+add column Blood_type_name varchar(50) after`Blood Type`;
+
+
+start transaction;
+rollback;
+update healthcare_dataset
+set Blood_type_name = case
+    when `Blood Type` = 'AB+' then 'Universal Recipient'
+   when `Blood Type` = 'O+' then 'Common Donor (Rh Positive)'
+    when `Blood Type` = 'A+' then 'A Type Positive'
+   when `Blood Type` = 'A-' then 'A Type Negative'
+   when `Blood Type` = 'B+' then 'B Type Positive'
+    when `Blood Type` = 'B-' then 'B Type Negative'
+   when `Blood Type`= 'AB-' then 'AB Type Negative'
+   when `Blood Type` = 'O-' then 'Universal Donor'
+    ELSE 'Unknown'
+    end;
+    
+    
+alter table healthcare_dataset
+modify `Billing Amount`decimal (10,2);
+
+select min(`Billing Amount`)  from healthcare_dataset; -- -2008.49
+select max(`Billing Amount`) from healthcare_dataset; -- 52764.28
+select avg(`Billing Amount`) from healthcare_dataset; -- 25539.316071
+select distinct`Billing Amount` from healthcare_dataset;
+
+alter table healthcare_dataset
+add column Billing_category varchar(50) after `Billing Amount`;
+
+start transaction;
+rollback;
+update healthcare_dataset
+set Billing_category = case
+when `Billing Amount`< 25539.316071 then 'Low billing'
+when `Billing Amount`>= 25539.316071 then 'High billing'
+else 'Unknown'
+end;
+
+SELECT 
+Age_group,
+  COUNT(*) AS Age_group_Count
+FROM healthcare_dataset
+WHERE Age_group IS NOT NULL
+GROUP BY Age_group
+ORDER BY Age_group_Count DESC;
+
+select distinct Billing_category from healthcare_dataset;
+
+
+
+
+select * from healthcare_dataset;
